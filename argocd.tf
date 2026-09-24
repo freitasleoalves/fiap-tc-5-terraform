@@ -10,6 +10,10 @@ resource "helm_release" "argocd" {
   namespace        = "argocd"
   create_namespace = true
 
+  # Repositório fiap-tc-5-gitops é PÚBLICO — o ArgoCD clona sem autenticação
+  # (sem username/password). Evita depender de um PAT que pode
+  # expirar/ser revogado (like já aconteceu com o token reaproveitado da
+  # Fase 4) só pra uma operação de leitura que nem precisa de credencial.
   set = [
     {
       name  = "server.service.type"
@@ -24,19 +28,8 @@ resource "helm_release" "argocd" {
       value = "git"
     },
     {
-      name  = "configs.repositories.gitops-repo.username"
-      value = "freitasleoalves"
-    },
-    {
       name  = "configs.params.kustomize\\.buildOptions"
       value = "--enable-helm"
-    },
-  ]
-
-  set_sensitive = [
-    {
-      name  = "configs.repositories.gitops-repo.password"
-      value = var.argocd_github_token
     },
   ]
 

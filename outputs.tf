@@ -67,8 +67,13 @@ output "postgres_ngo_host" {
 
 output "postgres_ngo_connection_string" {
   description = "Connection string do PostgreSQL do ngo-service"
-  value       = var.deploy_databases ? "postgres://${var.postgres_admin_user}:${var.postgres_admin_password}@${azurerm_postgresql_flexible_server.ngo[0].fqdn}:5432/ngo_db?sslmode=require" : null
-  sensitive   = true
+  # urlencode() é obrigatório aqui: a senha pode conter caracteres
+  # reservados de URI (ex.: "@", "!") que, sem escape, quebram o parser da
+  # connection string (o "@" da senha é interpretado como o separador
+  # user:pass@host, e o host vira sopa de letra) — bug real encontrado na
+  # validação end-to-end.
+  value     = var.deploy_databases ? "postgres://${urlencode(var.postgres_admin_user)}:${urlencode(var.postgres_admin_password)}@${azurerm_postgresql_flexible_server.ngo[0].fqdn}:5432/ngo_db?sslmode=require" : null
+  sensitive = true
 }
 
 output "postgres_donation_host" {
@@ -78,8 +83,9 @@ output "postgres_donation_host" {
 
 output "postgres_donation_connection_string" {
   description = "Connection string do PostgreSQL do donation-service"
-  value       = var.deploy_databases ? "postgres://${var.postgres_admin_user}:${var.postgres_admin_password}@${azurerm_postgresql_flexible_server.donation[0].fqdn}:5432/donation_db?sslmode=require" : null
-  sensitive   = true
+  # urlencode() pelo mesmo motivo do output postgres_ngo_connection_string.
+  value     = var.deploy_databases ? "postgres://${urlencode(var.postgres_admin_user)}:${urlencode(var.postgres_admin_password)}@${azurerm_postgresql_flexible_server.donation[0].fqdn}:5432/donation_db?sslmode=require" : null
+  sensitive = true
 }
 
 # ============================================

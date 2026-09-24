@@ -17,6 +17,25 @@ output "aks_node_resource_group" {
   value       = azurerm_kubernetes_cluster.aks.node_resource_group
 }
 
+# ------------------------------------------------------------------
+# GitHub Actions self-healing (AZURE_CREDENTIALS de cada repo de serviço)
+# ------------------------------------------------------------------
+# Cole `azure_credentials_json` direto no secret AZURE_CREDENTIALS de cada
+# um dos 4 repositórios fiap-tc-5-*-service (Settings > Secrets and
+# variables > Actions). AKS_RESOURCE_GROUP = output `resource_group_name`,
+# AKS_CLUSTER_NAME = output `aks_cluster_name` (mesmos valores nos 4 repos,
+# é o mesmo cluster).
+output "azure_credentials_json" {
+  description = "JSON pronto pro secret AZURE_CREDENTIALS (azure/login@v2) dos 4 repos de serviço — formato {clientId, clientSecret, subscriptionId, tenantId}"
+  sensitive   = true
+  value = jsonencode({
+    clientId       = azuread_application.github_selfheal.client_id
+    clientSecret   = azuread_service_principal_password.github_selfheal.value
+    subscriptionId = var.subscription_id
+    tenantId       = data.azuread_client_config.current.tenant_id
+  })
+}
+
 # ============================================
 # ACR
 # ============================================

@@ -87,4 +87,11 @@ serviço específico (`var.service_repos`), não para o `fiap-tc-5-gitops`.
 Cada repositório de serviço precisa ter seu próprio
 `.github/workflows/self-heal.yml` (ver Fase C do plano de execução) e os
 secrets `AZURE_CREDENTIALS`, `AKS_RESOURCE_GROUP`, `AKS_CLUSTER_NAME`
-configurados individualmente.
+configurados individualmente (Settings > Secrets and variables > Actions),
+copiados dos outputs `azure_credentials_json` (sensível — `terraform
+output -raw azure_credentials_json`), `resource_group_name` e
+`aks_cluster_name` respectivamente, **nos 4 repositórios** (mesmo
+cluster). Diferente da Fase 4 (onde essa credencial foi criada
+manualmente via `az ad sp create-for-rbac`), aqui o Service Principal
+dedicado nasce e morre com o resto da infra (`github_actions.tf`) — sem
+passo manual fora do `terraform apply`.

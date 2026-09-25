@@ -48,10 +48,19 @@ resource "azuread_service_principal_password" "velero" {
 }
 
 # Permissão pra ler/gravar blobs de backup (manifestos do cluster).
+#
+# "Storage Blob Data Contributor" (só data-plane) NÃO é suficiente: o
+# plugin oficial do Azure pro Velero autentica no Blob Storage via Shared
+# Key, e pra obter essa chave ele chama a API de control-plane do ARM
+# `Microsoft.Storage/storageAccounts/listKeys` — que é uma permissão de
+# gerenciamento do recurso, não de dado. Sem "Storage Account
+# Contributor" (ou equivalente com `listKeys`), o BackupStorageLocation
+# fica "Unavailable" com AuthorizationFailed — bug real encontrado na
+# validação end-to-end.
 resource "azurerm_role_assignment" "velero_storage" {
   count                = var.deploy_databases ? 1 : 0
   scope                = azurerm_storage_account.velero[0].id
-  role_definition_name = "Storage Blob Data Contributor"
+  role_definition_name = "Storage Account Contributor"
   principal_id         = azuread_service_principal.velero[0].object_id
 }
 
